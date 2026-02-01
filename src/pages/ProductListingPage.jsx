@@ -8,13 +8,21 @@ const ProductListingPage = () => {
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await getAllProducts();
+      const res = await getAllProducts({
+        page,
+        search,
+        category_id: categoryId,
+      });
+
       setProducts(res.data.data);
+      setLastPage(res.data.last_page);
     } catch (err) {
       console.error(err);
     } finally {
@@ -33,15 +41,16 @@ const ProductListingPage = () => {
 
   useEffect(() => {
     fetchProducts();
+  }, [page, search, categoryId]);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
-  const filteredProducts = products.filter((p) => {
-    return (
-      (!search || p.name.toLowerCase().includes(search.toLowerCase())) &&
-      (!categoryId || p.category_id == categoryId)
-    );
-  });
+  // reset page when filter/search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryId]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -51,7 +60,7 @@ const ProductListingPage = () => {
           <h1 className="text-3xl font-extrabold text-gray-800">Products</h1>
           <Link
             to="/admin/product/add"
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow transition"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow"
           >
             + Add Product
           </Link>
@@ -62,12 +71,12 @@ const ProductListingPage = () => {
           <input
             type="text"
             placeholder="Search product..."
-            className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-400 focus:outline-none transition"
+            className="flex-1 p-3 rounded-lg border focus:ring-2 focus:ring-purple-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-400 focus:outline-none transition"
+            className="p-3 rounded-lg border focus:ring-2 focus:ring-purple-400"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
           >
@@ -80,57 +89,76 @@ const ProductListingPage = () => {
           </select>
         </div>
 
-        {/* Loading */}
+        {/* Loader */}
         {loading && (
-          <div className="flex justify-center items-center py-10">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex justify-center py-10">
+            <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
-        {/* No Products */}
-        {!loading && filteredProducts.length === 0 && (
-          <p className="text-gray-500 text-center mt-10 text-lg">
-            No products found.
-          </p>
+        {/* Empty */}
+        {!loading && products.length === 0 && (
+          <p className="text-center text-gray-500">No products found</p>
         )}
 
-        {/* Product Grid */}
+        {/* Products */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition p-5 flex flex-col"
+              className="bg-white rounded-xl shadow p-5"
             >
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">
-                {product.name}
-              </h2>
-              <p className="text-gray-500 mb-2">{product.category?.name}</p>
-              <p className="text-gray-700 font-bold mb-2">₹ {product.price}</p>
+              <h2 className="font-semibold">{product.name}</h2>
+              <p className="text-gray-500">{product.category?.name}</p>
+              <p className="font-bold mt-1">₹ {product.price}</p>
               <p
-                className={`mb-4 font-semibold ${
-                  product.quantity > 0 ? "text-green-600" : "text-red-500"
-                }`}
+                className={`mt-2 font-semibold ${product.quantity <= 10
+                    ? "text-red-600"
+                    : "text-green-600"
+                  }`}
               >
                 {product.quantity} in stock
               </p>
-
-              <div className="mt-auto flex gap-2">
-                <Link
-                  to={`/admin/product/${product.id}`}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg text-center transition"
-                >
-                  View
-                </Link>
-                <Link
-                  to={`/admin/product/edit/${product.id}`}
-                  className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded-lg text-center transition"
-                >
-                  Edit
-                </Link>
-              </div>
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {lastPage > 1 && (
+          <div className="flex justify-center mt-10 gap-2 flex-wrap">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            {[...Array(lastPage)].map((_, i) => {
+              const p = i + 1;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`px-4 py-2 rounded ${p === page
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-200"
+                    }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+
+            <button
+              disabled={page === lastPage}
+              onClick={() => setPage(page + 1)}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
