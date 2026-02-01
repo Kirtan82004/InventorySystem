@@ -1,11 +1,11 @@
 import api from './axios';
 
 // GET products
-const getAllProducts = async (
+const getAllProducts = async ({
   page = 1,
   search = "",
   category_id = ""
-) => {
+}) => {
   const res = await api.get('/products', {
     params: { page, search, category_id }
   });
