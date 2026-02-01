@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllProducts } from "../services/productService";
+import { getAllProductsForStock } from "../services/productService";
 import { Link } from "react-router-dom";
 
 export default function Stock() {
@@ -8,7 +8,7 @@ export default function Stock() {
 
   const fetchStock = async () => {
     try {
-      const res = await getAllProducts();
+      const res = await getAllProductsForStock();
       setProducts(res.data.data);
     } catch (err) {
       console.error(err);

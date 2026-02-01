@@ -12,6 +12,11 @@ const getAllProducts = async ({
   return res.data;
 };
 
+const getAllProductsForStock = async () => {
+  const res = await api.get("/products/all");
+  return res.data;
+};
+
 // GET single product
 const getProductDetails = async (id) => {
   const res = await api.get(`/products/${id}`);
@@ -70,6 +75,7 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAllProductsForStock
   stockIn,
   stockOut
 };
