@@ -75,7 +75,7 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
-  getAllProductsForStock
+  getAllProductsForStock,
   stockIn,
   stockOut
 };
