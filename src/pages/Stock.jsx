@@ -9,7 +9,8 @@ export default function Stock() {
   const fetchStock = async () => {
     try {
       const res = await getAllProductsForStock();
-      setProducts(res.data.data);
+      console.log("res in stock page:", res);
+      setProducts(res);
     } catch (err) {
       console.error(err);
     } finally {
