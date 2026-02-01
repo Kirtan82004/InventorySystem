@@ -20,6 +20,7 @@ const ProductListingPage = () => {
         search,
         category_id: categoryId,
       });
+      console.log("res in product listing:", res);
 
       setProducts(res.data.data);
       setLastPage(res.data.last_page);
